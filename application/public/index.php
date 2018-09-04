@@ -2,6 +2,9 @@
 
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
+use Phalcon\Loader;
+//use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
+use Phalcon\Db\Adapter\Pdo\Postgresql as PdoPostgres;
 
 error_reporting(E_ALL);
 
@@ -31,7 +34,31 @@ try {
      */
     include APP_PATH . '/config/loader.php';
 
-$app = new Micro();
+$loader->registerNamespaces(
+    [
+        'modeldir' => __DIR__ . '/models/',
+    ]
+);
+
+$loader->register();
+
+// Set up the database service
+$di->set(
+    'db',
+    function () {
+        return new PdoPostgres(
+            [
+                'host'     => 'postgres',
+                'username' => 'postgres',
+                'password' => 'postgres',
+                'dbname'   => 'kindle',
+            ]
+        );
+    }
+);
+
+// Create and bind the DI to the application
+$app = new Micro($di);
 
 // Retrieves all robots
 $app->get(
@@ -45,6 +72,7 @@ $app->get(
 
         foreach ($books as $book) {
             $data[] = [
+		'id' => $book->id,
                 'amazon_id'   => $book->amazon_id,
                 'title' => $book->title,
                 'publication_date' => $book->publication_date,
@@ -59,7 +87,7 @@ $app->get(
     }
 );
 
-// Searches for robots with $name in their name
+// Searches for books with $name in their name
 $app->get(
     '/api/books/search/{title}',
     function ($title) use ($app) {
@@ -77,6 +105,7 @@ $app->get(
         foreach ($books as $book) {
 
             $data[] = [
+		'id' => $book->id,
                 'amazon_id'   => $book->amazon_id,
                 'title' => $book->title,
                 'publication_date' => $book->publication_date,
@@ -91,11 +120,47 @@ $app->get(
     }
 );
 
-// Retrieves robots based on primary key
+// Retrieves books based on primary key
 $app->get(
-    '/api/books/{id}',
+    '/api/books/id/{id}',
     function ($id) {
-        // Operation to fetch robot with id $id
+        $phql = 'SELECT * FROM title WHERE id = :id:';
+
+        $book = $app->modelsManager->executeQuery(
+            $phql,
+            [
+                'id' => $id,
+            ]
+        )->getFirst();
+
+        // Create a response
+        $response = new Response();
+
+        if ($book === false) {
+            $response->setJsonContent(
+                [
+                    'status' => 'NOT-FOUND'
+                ]
+            );
+        } else {
+            $response->setJsonContent(
+                [
+                    'status' => 'FOUND',
+                    'data'   => [
+                'id'   => $book->id,
+                'amazon_id'   => $book->amazon_id,
+                'title' => $book->title,
+                'publication_date' => $book->publication_date,
+                'evaluation' => $book->evaluation,
+                'review_cnt' => $book->review_cnt,
+                'now_price' => $book->now_price,
+                'lowest_price' => $book->lowest_price,
+                    ]
+                ]
+            );
+        }
+
+        return $response;
     }
 );
 
