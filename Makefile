@@ -43,7 +43,7 @@ build: check
 
 pull:
 	#docker pull mongo:3.2
-	docker pull postgres:11.1
+	docker pull postgres:11.1-alpine
 	#docker pull mysql:5.7
 	#docker pull memcached:1.4
 	docker pull aerospike:latest
