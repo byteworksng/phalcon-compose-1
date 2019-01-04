@@ -1,6 +1,6 @@
 ROOT_DIR       := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 VARIABLES_FILE  = $(ROOT_DIR)/variables.env
-PHALCON_VERSION = $(shell docker run -it --rm phalconphp/php-apache:ubuntu-16.04 sh -c "/usr/bin/php -r 'echo Phalcon\Version::get();'")
+PHALCON_VERSION = $(shell docker run -it --rm byteworks/phalcon-php72-nginx:ubuntu-18.04 sh -c "/usr/bin/php -r 'echo Phalcon\Version::get();'")
 SHELL          := $(shell which bash)
 VERSION         = 2.3.0
 ARGS            = $(filter-out $@,$(MAKECMDGOALS))
@@ -42,16 +42,16 @@ build: check
 	docker-compose build --no-cache
 
 pull:
-	docker pull mongo:3.2
-	docker pull postgres:9.5
-	docker pull mysql:5.7
-	docker pull memcached:1.4
+	#docker pull mongo:3.2
+	docker pull postgres:11.1
+	#docker pull mysql:5.7
+	#docker pull memcached:1.4
 	docker pull aerospike:latest
 	docker pull redis:latest
-	docker pull elasticsearch:2.3
+	docker pull elasticsearch:6.5.4
 	docker pull jeroenpeeters/docker-ssh:latest
 	docker pull phalconphp/beanstalkd:1.10
-	docker pull phalconphp/php-apache:ubuntu-16.04
+	docker pull byteworks/phalcon-php72-nginx:ubuntu-18.04
 
 up: check
 	docker-compose up -d
