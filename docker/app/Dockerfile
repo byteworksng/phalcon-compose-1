@@ -1,5 +1,5 @@
 # Pull base image
-FROM phalconphp/php-apache:ubuntu-16.04
+FROM byteworks/phalcon-php72-nginx:ubuntu-18.04
 
 ENV PROVISION_CONTEXT "development"
 
