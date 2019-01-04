@@ -13,7 +13,7 @@ services:
 #
   postgres:
     restart: always
-    image: postgres:9.5-alpine
+    image: postgres:11.1-alpine
     expose:
       - "5432"
     ports:
@@ -53,46 +53,46 @@ services:
 #    ports:
 #      - "11211:11211"
 #
-#  queue:
-#    restart: always
-#    image: phalconphp/beanstalkd:1.10
-#    ports:
-#      - "11300:11300"
-#    volumes:
-#      - beanstalk:/var/lib/beanstalkd
-#
-#  aerospike:
-#    restart: always
-#    image: aerospike:latest
-#    ports:
-#      - "3000:3000"
-#      - "3001:3001"
-#      - "3002:3002"
-#      - "3003:3003"
-#    volumes:
-#      - aerospike:/opt/aerospike/data
-#
-  redis:
+  queue:
     restart: always
-    image: redis:3.2-alpine
+    image: phalconphp/beanstalkd:1.10
     ports:
-      - "6379:6379"
+      - "11300:11300"
     volumes:
-      - redis:/data
+      - beanstalk:/var/lib/beanstalkd
 #
-#  elasticsearch:
-#    image: elasticsearch:5.2-alpine
+  aerospike:
+    restart: always
+    image: aerospike:latest
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+      - "3002:3002"
+      - "3003:3003"
+    volumes:
+      - aerospike:/opt/aerospike/data
+#
+#  redis:
 #    restart: always
-#    expose:
-#      - "9200"
-#      - "9300"
+#    image: redis:3.2-alpine
 #    ports:
-#      - "9200:9200"
-#      - "9300:9300"
-#    env_file:
-#      - variables.env
+#      - "6379:6379"
 #    volumes:
-#      - esdata:/usr/share/elasticsearch/data
+#      - redis:/data
+#
+  elasticsearch:
+    image: elasticsearch:5.2-alpine
+    restart: always
+    expose:
+      - "9200"
+      - "9300"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    env_file:
+      - variables.env
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
 #
   app:
     build: docker/app
@@ -103,15 +103,15 @@ services:
       - "443:443"
     volumes:
       - .:/project
-      - ./conf/php/cli.ini:/etc/php/7.0/cli/conf.d/99-custom.ini
-      - ./conf/php/fpm.ini:/etc/php/7.0/fpm/conf.d/99-custom.ini
+      - ./conf/php/cli.ini:/etc/php/7.2/cli/conf.d/99-custom.ini
+      - ./conf/php/fpm.ini:/etc/php/7.2/fpm/conf.d/99-custom.ini
     depends_on:
       - postgres
 #      - mysql
-#      - queue
-      - redis
+      - queue
+      - aerospike
 #      - memcached
-#      - elasticsearch
+      - elasticsearch
     env_file:
       - variables.env
 #
@@ -122,11 +122,11 @@ volumes:
     driver: local
 #  mysql:
 #    driver: local
-#  beanstalk:
-#    driver: local
-  redis:
+  beanstalk:
     driver: local
-#  aerospike:
+#  redis:
 #    driver: local
-#  esdata:
-#    driver: local
+  aerospike:
+    driver: local
+  esdata:
+    driver: local
